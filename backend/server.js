@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 5001;
 // 1. Security
 app.use(helmet());
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'https://modernsweets.in' : 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
   credentials: true
 }));
 
@@ -38,47 +38,17 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Production static serve
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../../dist')));
-  app.get('*', (req, res) => res.sendFile(path.join(__dirname, '../../dist/index.html')));
-}
-
-// === MODELS ===
+// No static serve for dev MERN separation
 const { Product } = require('./models');
 
 // === ROUTES ===
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/admin/orders', require('./routes/orders'));
-app.use('/api/admin/products', require('./routes/products'));
+app.use('/api/products', require('./routes/products'));
 
 // Public APIs
-app.post('/api/orders', async (req, res) => {
-  try {
-    res.json({ success: true, message: 'Customer order received' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.get('/api/products', async (req, res) => {
   try {
-    let products = await Product.find();
-    if (products.length === 0) {
-      const { bakeryProducts } = require('./data/full-products.js');
-      products = await Product.insertMany(bakeryProducts.map(p => ({
-        name: p.NameToDisplay,
-        qty: p['Curr.Qty'],
-        groupName: p.GroupName,
-        category: p.Category,
-        hsncode: p.HSNCODE,
-        unit1: p.Unit1,
-        prodConv1: p.ProdConv1,
-        unit2: p.Unit2,
-        salesTax: p.SalesTax,
-        purchaseTax: p.PurchaseTax
-      })));
-    }
+    const products = await Product.find();
     res.json({ success: true, data: products });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -110,7 +80,8 @@ process.on('SIGTERM', () => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Professional Express API running on http://localhost:${PORT}`);
+  console.log(`🚀 MERN Backend running on http://localhost:${PORT}`);
   console.log(`📚 API Docs: http://localhost:${PORT}/api-docs`);
   console.log(`❤️ Health: http://localhost:${PORT}/api/health`);
+  console.log(`🔗 Products public: http://localhost:${PORT}/api/products`);
 });

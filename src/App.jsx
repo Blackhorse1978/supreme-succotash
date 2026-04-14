@@ -1,189 +1,223 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
+import AdminDashboard from './components/AdminDashboard';
 import './App.css';
 
-const menuItems = [
-  { name: 'Rose Chai Latte', description: 'Warm spiced latte infused with rose syrup and foam.', price: '₹195' },
-  { name: 'Salted Caramel Tart', description: 'Buttery shortcrust with caramel and sea salt.', price: '₹220' },
-  { name: 'Matcha Éclair', description: 'Light choux pastry filled with matcha cream and cardamom.', price: '₹185' },
-  { name: 'Berry Crumble Bar', description: 'Fresh berries with crisp oats and brown sugar topping.', price: '₹160' },
-];
+const Login = () => {
+  const [form, setForm] = useState({ username: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
 
-function App() {
-  const [form, setForm] = useState({ name: '', email: '', order: '', message: '' });
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (!form.name || !form.email) return;
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4500);
-    setForm({ name: '', email: '', order: '', message: '' });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (data.success) {
+        login(data.token, data.user);
+      } else {
+        setError(data.error || 'Login failed');
+      }
+    } catch (err) {
+      setError('Network error');
+    }
+    setLoading(false);
   };
 
   return (
-    <div className="App">
-      <header className="site-header">
-        <div className="brand-group">
-          <div className="brand-mark">MS</div>
-          <div>
-            <p className="brand-name">Modern Sweets</p>
-            <p className="brand-tag">Bakery & CRM</p>
-          </div>
-        </div>
-        <nav className="site-nav">
-          <a href="#menu">Menu</a>
-          <a href="#crm">Dashboard</a>
-          <a href="#contact">Contact</a>
-        </nav>
-      </header>
-
-      <main className="hero">
-        <div className="hero-copy">
-          <span className="eyebrow">Professional Bakery Experience</span>
-          <h1>Handcrafted sweets, premium service, and modern outlet control.</h1>
-          <p>
-            Modern Sweets brings a refined bakery experience to Srinagar with three premium outlets and a
-            factory hub in Khanmoo Industrial Area. Our site helps customers order fresh treats and
-            keeps operations smooth across every location.
-          </p>
-          <div className="hero-actions">
-            <a href="#menu" className="button button-primary">Explore Menu</a>
-            <a href="#contact" className="button button-secondary">Book Catering</a>
-          </div>
-        </div>
-
-        <div className="hero-visual">
-          <img
-            src="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=1200&q=80"
-            alt="Modern bakery interior"
-          />
-          <div className="hero-stats">
-            <div>
-              <strong>4</strong>
-              <span>Locations</span>
-            </div>
-            <div>
-              <strong>98%</strong>
-              <span>Customer happiness</span>
-            </div>
-            <div>
-              <strong>100+</strong>
-              <span>Fresh items weekly</span>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <section id="menu" className="section section-light">
-        <div className="section-heading">
-          <span className="eyebrow">Our Bestsellers</span>
-          <h2>Crafted daily with premium ingredients</h2>
-          <p>Discover our signature collection of modern bakery classics, designed for taste and elegance.</p>
-        </div>
-
-        <div className="menu-grid">
-          {menuItems.map((item) => (
-            <article key={item.name} className="menu-card">
-              <h3>{item.name}</h3>
-              <p>{item.description}</p>
-              <span className="price">{item.price}</span>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="crm" className="section section-dark">
-        <div className="dashboard-copy">
-          <span className="eyebrow">Outlet & CRM Control</span>
-          <h2>Manage Regal Chowk, Karan Nagar, Pirbagh & Khanmoo factory from one dashboard.</h2>
-          <p>
-            Our bakery platform combines customer care, order tracking, and multi-location operations into
-            a single modern interface so every visit feels smooth and premium.
-          </p>
-          <div className="dashboard-features">
-            <div>
-              <strong>Includes</strong>
-              <p>Real-time order flow, loyalty tracking, and production coordination.</p>
-            </div>
-            <div>
-              <strong>Built for</strong>
-              <p>Bakery teams, outlet managers and customer service staff.</p>
-            </div>
-            <div>
-              <strong>Designed</strong>
-              <p>For fast decisions, clear reporting, and modern bakery growth.</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="contact-panel">
-          <h3>Send a bakery inquiry</h3>
-          <p>Tell us your order, event date or catering requirement and our team will connect with you.</p>
-          <form onSubmit={handleSubmit} className="contact-form">
-            <label>
-              Name
-              <input name="name" value={form.name} onChange={handleChange} placeholder="Your name" />
-            </label>
-            <label>
-              Email
-              <input
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-              />
-            </label>
-            <label>
-              Order details
-              <input name="order" value={form.order} onChange={handleChange} placeholder="Your favorite treat or custom cake details" />
-            </label>
-            <label>
-              Message
-              <textarea
-                name="message"
-                value={form.message}
-                onChange={handleChange}
-                placeholder="Any special requests or delivery notes"
-              />
-            </label>
-            <button type="submit" className="button button-primary">Submit Request</button>
-            {submitted && <p className="success-note">Thank you — we have received your request.</p>}
-          </form>
-        </div>
-      </section>
-
-      <section id="contact" className="section section-light footer-section">
-        <div className="footer-copy">
-          <h2>Modern Sweets Outlets</h2>
-          <p>Visit any of our locations or connect with us for catering and special orders.</p>
-        </div>
-        <div className="footer-grid">
-          <div>
-            <strong>Regal Chowk</strong>
-            <p>Shop 12, Regal Chowk, Srinagar</p>
-          </div>
-          <div>
-            <strong>Karan Nagar</strong>
-            <p>Upper Karan Nagar, Srinagar</p>
-          </div>
-          <div>
-            <strong>Pirbagh</strong>
-            <p>Pirbagh Market, Srinagar</p>
-          </div>
-          <div>
-            <strong>Factory</strong>
-            <p>Khanmoo Industrial Area, Srinagar</p>
-          </div>
-        </div>
-      </section>
+    <div style={styles.center}>
+      <form onSubmit={handleSubmit} style={styles.form}>
+        <h2>Login</h2>
+        {error && <p style={styles.error}>{error}</p>}
+        <input
+          type="text"
+          placeholder="Username"
+          value={form.username}
+          onChange={(e) => setForm({ ...form, username: e.target.value })}
+          style={styles.input}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={form.password}
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          style={styles.input}
+          required
+        />
+        <button type="submit" disabled={loading} style={styles.button}>
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
+        <p style={styles.link}><Link to="/register">Register new account</Link></p>
+      </form>
     </div>
+  );
+};
+
+const Register = () => {
+  const [form, setForm] = useState({ username: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (data.success) {
+        login(data.token, data.user);
+      } else {
+        setError(data.error || 'Registration failed');
+      }
+    } catch (err) {
+      setError('Network error');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={styles.center}>
+      <form onSubmit={handleSubmit} style={styles.form}>
+        <h2>Register</h2>
+        {error && <p style={styles.error}>{error}</p>}
+        <input
+          type="text"
+          placeholder="Username"
+          value={form.username}
+          onChange={(e) => setForm({ ...form, username: e.target.value })}
+          style={styles.input}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={form.password}
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          style={styles.input}
+          required
+        />
+        <button type="submit" disabled={loading} style={styles.button}>
+          {loading ? 'Registering...' : 'Register'}
+        </button>
+        <p style={styles.link}><Link to="/login">Have account? Login</Link></p>
+      </form>
+    </div>
+  );
+};
+
+function App() {
+  const { user, logout, loading } = useAuth();
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <Router>
+      <div style={styles.app}>
+        <nav style={styles.nav}>
+          <Link to="/dashboard" style={styles.navLink}>Dashboard</Link>
+          {!user && (
+            <>
+              <Link to="/login" style={styles.navLink}>Login</Link>
+              <Link to="/register" style={styles.navLink}>Register</Link>
+            </>
+          )}
+          {user && (
+            <button onClick={logout} style={styles.logoutBtn}>Logout</button>
+          )}
+        </nav>
+        <Routes>
+          <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<AdminDashboard />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
+const styles = {
+  app: {
+    minHeight: '100vh',
+    fontFamily: 'system-ui, sans-serif',
+  },
+  nav: {
+    display: 'flex',
+    gap: '1rem',
+    padding: '1rem',
+    background: '#f0f0f0',
+    borderBottom: '1px solid #ddd',
+  },
+  navLink: {
+    textDecoration: 'none',
+    color: '#333',
+    padding: '0.5rem 1rem',
+    borderRadius: '4px',
+    transition: 'background 0.2s',
+  },
+  logoutBtn: {
+    marginLeft: 'auto',
+    background: '#ff4444',
+    color: 'white',
+    border: 'none',
+    padding: '0.5rem 1rem',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  center: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '80vh',
+  },
+  form: {
+    width: '300px',
+    padding: '2rem',
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    background: 'white',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+  },
+  input: {
+    width: '100%',
+    padding: '0.75rem',
+    marginBottom: '1rem',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    fontSize: '1rem',
+  },
+  button: {
+    width: '100%',
+    padding: '0.75rem',
+    background: '#007bff',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '1rem',
+    cursor: 'pointer',
+  },
+  error: {
+    color: '#dc3545',
+    marginBottom: '1rem',
+  },
+  link: {
+    textAlign: 'center',
+    marginTop: '1rem',
+  }
+};
+
 export default App;
+

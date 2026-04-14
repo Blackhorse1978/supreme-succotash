@@ -18,11 +18,10 @@ const Product = require('../models/Product');
  */
 router.get('/', auth, async (req, res) => {
   try {
-    const { category, groupName, lowStock } = req.query;
+    const { category, stock } = req.query;
     let query = {};
     if (category) query.category = category;
-    if (groupName) query.groupName = groupName;
-    if (lowStock === 'true') query.qty = { $lt: 10 };
+    if (stock === 'low') query.stock = { $lt: 10 };
 
     const products = await Product.find(query).sort({ createdAt: -1 }).limit(100);
     res.json({ 
@@ -62,7 +61,7 @@ router.get('/', auth, async (req, res) => {
 router.post('/', auth, [
   body('name').notEmpty().withMessage('Name required'),
   body('category').notEmpty(),
-  body('groupName').notEmpty(),
+  body('price').isFloat({ min: 0 }).withMessage('Price must be positive number'),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
