@@ -51,6 +51,7 @@ const { Product } = require('./models');
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin/orders', require('./routes/orders'));
 app.use('/api/admin/products', require('./routes/products'));
+app.use('/api/admin/raw-materials', require('./routes/rawMaterials'));
 
 // Public APIs
 app.post('/api/orders', async (req, res) => {

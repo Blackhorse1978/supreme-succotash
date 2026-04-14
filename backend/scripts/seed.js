@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
-const { User, Product } = require('../models');
+const { User, Product, RawMaterial } = require('../models');
 const { bakeryProducts } = require('../data/full-products');
+const { rawMaterialsData } = require('../data/raw-materials-data');
 
 async function seedData() {
   try {
@@ -44,6 +45,23 @@ async function seedData() {
       console.log(`✅ Seeded ${productsData.length} products`);
     } else {
       console.log(`ℹ️  ${productCount} products already exist, skipping seed`);
+    }
+
+    // Seed Raw Materials
+    const rawCount = await RawMaterial.countDocuments();
+    if (rawCount === 0) {
+      const rawData = rawMaterialsData.map(item => ({
+        name: item.name,
+        qty: item.qty,
+        unit: item.unit,
+        supplier: item.vendor,
+        expiry: new Date(item.date),
+        section: item.section
+      }));
+      await RawMaterial.insertMany(rawData.slice(0, 50)); // First 50
+      console.log(`✅ Seeded ${rawData.slice(0, 50).length} raw materials from ledger`);
+    } else {
+      console.log(`ℹ️  ${rawCount} raw materials exist, skipping`);
     }
 
     console.log('🎉 Seeding complete!');
