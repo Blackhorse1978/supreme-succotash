@@ -1,7 +1,49 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
 // import { motion, AnimatePresence } from "framer-motion"; // Removed framer-motion dependency for lighter bundle, using Tailwind/CSS animations
 
 const ModernBakeryERP = () => {
+  const { user, token, login, logout } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [inventory, setInventory] = useState([]);
+  const [myOrders, setMyOrders] = useState([]);
+
+  useEffect(() => {
+    if (token) {
+      fetchInventory();
+      fetchOrders();
+    }
+  }, [token]);
+
+  const fetchInventory = async () => {
+    try {
+      const res = await axios.get('/api/admin/products');
+      setInventory(res.data.data.map(p => ({
+        id: p._id,
+        name: p.name,
+        branchCode: p.category || 'ALL',
+        price: parseFloat(p.price) || 0,
+        stock: p.qty || p.stock || 0
+      })));
+    } catch (err) {
+      setError('Failed to fetch products');
+      console.error(err);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const res = await axios.get('/api/orders');
+      setMyOrders(res.data.data);
+    } catch (err) {
+      setError('Failed to fetch orders');
+      console.error(err);
+    }
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-white">Loading...</div>;
   // --- AUTH STATES ---
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [credentials, setCredentials] = useState({ username: "", password: "" });
@@ -12,7 +54,6 @@ const ModernBakeryERP = () => {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [cart, setCart] = useState([]);
-  const [myOrders, setMyOrders] = useState([]);
 
   // --- BRANCH DATA ---
   const branches = [
@@ -46,14 +87,6 @@ const ModernBakeryERP = () => {
     setDeliveryDate(now.toISOString().split("T")[0]);
     setDeliveryTime(now.toTimeString().slice(0, 5));
   }, [view]);
-
-  // --- INVENTORY ---
-  const [inventory] = useState([
-    { id: "MS1001", name: "BAKIR KHANI", branchCode: "RC-01", price: 20, stock: 504 },
-    { id: "MS1002", name: "BREAD NAMKEEN", branchCode: "PB-02", price: 40, stock: 330 },
-    { id: "MS1004", name: "CHICKEN PATTIES", branchCode: "RC-01", price: 35, stock: 864 },
-    { id: "MS1005", name: "FRUIT CAKE", branchCode: "LZ-03", price: 150, stock: 45 },
-  ]);
 
   const handleLogin = (e) => {
     e.preventDefault();

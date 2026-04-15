@@ -1,5 +1,5 @@
-import ModernBakeryERP from './ModernBakeryDashboard.jsx';
+import ModernBakeryDashboard from './ModernBakeryDashboard.jsx';
 
-export default ModernBakeryERP;
+export default ModernBakeryDashboard;
 
 
