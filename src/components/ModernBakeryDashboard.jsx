@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
-// import { motion, AnimatePresence } from "framer-motion"; // Removed framer-motion dependency for lighter bundle, using Tailwind/CSS animations
+import { motion, AnimatePresence } from "framer-motion";
 
 const ModernBakeryERP = () => {
   const { user, token, login, logout } = useAuth();
@@ -205,8 +205,9 @@ const ModernBakeryERP = () => {
           {/* Main Nav */}
           <div className="space-y-1 mb-12">
             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4 px-2">Main Menu</h3>
-            {[
+{[
               { label: '📊 Dashboard', active: view === 'dashboard' },
+              { label: '📦 Products', active: view === 'products' },
               { label: '➕ New Order', active: view === 'punch' },
               { label: '📋 History', active: view === 'orders' },
             ].map((item, i) => (
@@ -214,7 +215,7 @@ const ModernBakeryERP = () => {
                 key={item.label}
                 whileHover={{ scale: 1.02, x: 4 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setView(item.active ? view : item.label.split(' ')[1].toLowerCase())}
+                onClick={() => setView(item.active ? view : item.label.split(' ')[1]?.toLowerCase() || 'dashboard')}
                 className={`w-full p-4 rounded-2xl text-left font-medium transition-all duration-300 ${
                   item.active 
                     ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg' 
@@ -224,6 +225,7 @@ const ModernBakeryERP = () => {
                 {item.label}
               </motion.button>
             ))}
+
           </div>
 
           {/* Branches */}
@@ -475,6 +477,69 @@ const ModernBakeryERP = () => {
           </div>
         )}
 
+        {/* Products View */}
+        {view === "products" && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            className="space-y-6"
+          >
+            <h3 className="text-3xl font-bold mb-8 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+              📦 Products Management ({filteredProducts.length})
+            </h3>
+            <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-white/20">
+                      <th className="p-4 font-bold text-white">ID</th>
+                      <th className="p-4 font-bold text-white">Name</th>
+                      <th className="p-4 font-bold text-white">Branch</th>
+                      <th className="p-4 font-bold text-white">Stock</th>
+                      <th className="p-4 font-bold text-white">Price</th>
+                      <th className="p-4 font-bold text-white">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts.map((product) => (
+                      <tr key={product.id} className="border-b border-white/10 hover:bg-white/10 transition-colors">
+                        <td className="p-4 font-mono text-gray-200">{product.id.slice(-8)}</td>
+                        <td className="p-4 text-white font-medium">{product.name}</td>
+                        <td className="p-4">
+                          <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs">
+                            {product.branchCode}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                            product.stock < 100 ? 'bg-red-500/20 text-red-300' : 'bg-emerald-500/20 text-emerald-300'
+                          }`}>
+                            {product.stock}
+                          </span>
+                        </td>
+                        <td className="p-4 font-bold text-amber-400">₹{product.price}</td>
+                        <td className="p-4">
+                          <motion.button whileHover={{scale:0.95}} className="px-4 py-2 bg-blue-500/80 hover:bg-blue-600 text-white rounded-xl text-sm mr-2 transition-all">
+                            Edit
+                          </motion.button>
+                          <motion.button whileHover={{scale:0.95}} className="px-4 py-2 bg-red-500/80 hover:bg-red-600 text-white rounded-xl text-sm transition-all">
+                            Delete
+                          </motion.button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {filteredProducts.length === 0 && (
+                <motion.p initial={{opacity:0}} animate={{opacity:1}} className="text-center py-12 text-gray-400 text-lg">
+                  No products found. <motion.button whileHover={{scale:1.05}} className="ml-2 px-4 py-2 bg-emerald-500/80 hover:bg-emerald-600 text-white rounded-xl font-medium">Add New</motion.button>
+                </motion.p>
+              )}
+            </div>
+          </motion.div>
+        )}
+
         {/* Orders View */}
         {view === "orders" && (
           <motion.div 
@@ -511,6 +576,7 @@ const ModernBakeryERP = () => {
             ))}
           </motion.div>
         )}
+
       </main>
 
       {/* Packaging Modal */}
