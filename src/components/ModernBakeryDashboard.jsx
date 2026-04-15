@@ -60,7 +60,7 @@ const ModernBakeryERP = () => {
     { code: "ALL", name: "All Branches", icon: "🌐" },
     { code: "RC-01", name: "Regal Chowk", icon: "👑" },
     { code: "PB-02", name: "Pirbag", icon: "🏛️" },
-    { code: "LZ-03", name: "Lal Bazar", icon: "🕌" },
+    { code: "KN-03", name: "karannagar", icon: "🕌" },
   ];
 
   // --- DELIVERY STATES ---
